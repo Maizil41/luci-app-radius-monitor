@@ -62,7 +62,7 @@ jobs:
           sed -i '/^CONFIG_LUCI_CSSTIDY=/d' .config
 
           echo -e "\033[34m Compiling ${PKG_NAME} package \033[0m"
-          make package/${PKG_NAME}/{clean,compile} -j$(nproc)
+          make package/${PKG_NAME}/{clean,compile} V=s -j10
 
           echo -e "\033[34m Compilation completed: \033[0m"
           PKG_PATH=$(find bin/packages/x86_64/luci/ -name "${PKG_NAME}.ipk")
