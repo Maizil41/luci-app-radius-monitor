@@ -57,7 +57,7 @@ jobs:
     - name: Check Failed Radmon PHP7
       if: env.BUILD_FAILED != 'true'
       run: |
-        mv bin/packages/x86_64/base/luci-app-radmon-php7*.ipk ../luci-app-radmon-php7_${{ steps.get_radmon_php7.outputs.radmon_php7 }}_all.ipk
+        mv bin/packages/x86_64/base/luci-app-radmon-php7_*.ipk ../luci-app-radmon-php7_${{ steps.get_radmon_php7.outputs.radmon_php7 }}_all.ipk
     
     - name: Get Ramon PHP8
       id: get_radmon_php8
@@ -86,7 +86,7 @@ jobs:
     - name: Check Failed Radmon PHP8
       if: env.BUILD_FAILED != 'true'
       run: |
-        mv bin/packages/x86_64/base/luci-app-radmon-php8*.ipk ../luci-app-radmon-php8_${{ steps.get_radmon_php8.outputs.radmon_php8 }}_all.ipk
+        mv bin/packages/x86_64/base/luci-app-radmon-php8_*.ipk ../luci-app-radmon-php8_${{ steps.get_radmon_php8.outputs.radmon_php8 }}_all.ipk
 
     - name: Create Release
       if: env.BUILD_FAILED != 'true'
