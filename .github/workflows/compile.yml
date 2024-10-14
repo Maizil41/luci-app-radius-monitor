@@ -75,7 +75,7 @@ jobs:
           make package/${PKG_NAME_PHP7}/{clean,compile} -j$(nproc) > /dev/null 2>&1
 
           echo -e "\033[34m📦 Compilation completed for ${PKG_NAME_PHP7} \033[0m"
-          PKG_PATH_PHP7=$(find bin/packages/x86_64/luci/ -name '${PKG_NAME_PHP7}_${PKG_PHP7_VER}.ipk')
+          PKG_PATH_PHP7=$(find bin/packages/x86_64/luci/ -name 'luci-app-radmon-php7_*.ipk')
           PKG_FILE_PHP7=$(basename PKG_PATH_PHP7)
           echo "PKG_PATH_PHP7=sdk/$PKG_PATH_PHP7" >> $GITHUB_ENV
           echo "PKG_FILE_PHP7=$PKG_FILE_PHP7" >> $GITHUB_ENV
@@ -94,7 +94,7 @@ jobs:
           make package/${PKG_NAME_PHP8}/{clean,compile} -j$(nproc) > /dev/null 2>&1
 
           echo -e "\033[34m📦 Compilation completed for ${PKG_NAME_PHP8} \033[0m"
-          PKG_PATH_PHP8=$(find bin/packages/x86_64/luci/ -name '${PKG_NAME_PHP8}_${PKG_PHP8_VER}.ipk')
+          PKG_PATH_PHP8=$(find bin/packages/x86_64/luci/ -name 'luci-app-radmon-php8_*.ipk')
           PKG_FILE_PHP8=$(basename PKG_PATH_PHP8)
           echo "PKG_PATH_PHP8=sdk/$PKG_PATH_PHP8" >> $GITHUB_ENV
           echo "PKG_FILE_PHP8=$PKG_FILE_PHP8" >> $GITHUB_ENV
@@ -124,4 +124,4 @@ jobs:
         run: |
           curl -s -X POST "https://api.telegram.org/bot${{ secrets.BOT_TOKEN }}/sendMessage" \
           -d "chat_id=${{ secrets.CHAT_ID }}" \
-          -d "text=New release created for luci-app-radmon packages:\n- luci-app-radmon-php7\n- luci-app-radmon-php8\n\nRelease Version: v${{ github.run_number }}"
+          -d "text=New release created for luci-app-radmon packages:\n- luci-app-radmon-php7\n- luci-app-radmon-php8\n\nRelease Version: v${{ env.PKG_PHP7_VER }}"
