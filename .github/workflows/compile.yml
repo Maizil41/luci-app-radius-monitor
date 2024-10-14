@@ -54,12 +54,21 @@ jobs:
         sed -i 's/CONFIG_USE_STRIP=y/# CONFIG_USE_STRIP is not set/' .config
         sed -i 's/CONFIG_USE_SSTRIP=y/# CONFIG_USE_SSTRIP is not set/' .config
         (make package/luci-app-radmon-php7/compile V=s -j$(nproc) || echo "BUILD_FAILED=true" >> $GITHUB_ENV) > /dev/null 2>&1
-        
+
+    - name: List Output Directory
+      run: |
+        ls -l bin/packages/x86_64/base/
+    
     - name: Check Failed Radmon PHP7
       if: env.BUILD_FAILED != 'true'
       run: |
-        mv bin/packages/x86_64/base/luci-app-radmon-php7_${{ steps.get_radmon_php7.outputs.radmon_php7 }}_all.ipk ../luci-app-radmon-php7_${{ steps.get_radmon_php7.outputs.radmon_php7 }}_all.ipk
-    
+        if [ -f "bin/packages/x86_64/base/luci-app-radmon-php7_${{ steps.get_radmon_php7.outputs.radmon_php7 }}_all.ipk" ]; then
+          mv bin/packages/x86_64/base/luci-app-radmon-php7_${{ steps.get_radmon_php7.outputs.radmon_php7 }}_all.ipk ../luci-app-radmon-php7_${{ steps.get_radmon_php7.outputs.radmon_php7 }}_all.ipk
+        else
+          echo "File IPK untuk PHP7 tidak ditemukan."
+          exit 1
+        fi
+
     - name: Get Ramon PHP8
       id: get_radmon_php8
       run: |
@@ -87,8 +96,13 @@ jobs:
     - name: Check Failed Radmon PHP8
       if: env.BUILD_FAILED != 'true'
       run: |
-        mv bin/packages/x86_64/base/luci-app-radmon-php8_${{ steps.get_radmon_php8.outputs.radmon_php8 }}_all.ipk ../luci-app-radmon-php8_${{ steps.get_radmon_php8.outputs.radmon_php8 }}_all.ipk
-
+        if [ -f "bin/packages/x86_64/base/luci-app-radmon-php8_${{ steps.get_radmon_php8.outputs.radmon_php8 }}_all.ipk" ]; then
+          mv bin/packages/x86_64/base/luci-app-radmon-php8_${{ steps.get_radmon_php8.outputs.radmon_php8 }}_all.ipk ../luci-app-radmon-php8_${{ steps.get_radmon_php8.outputs.radmon_php8 }}_all.ipk
+        else
+          echo "File IPK untuk PHP7 tidak ditemukan."
+          exit 1
+        fi
+        
     - name: Create Release
       if: env.BUILD_FAILED != 'true'
       env:
