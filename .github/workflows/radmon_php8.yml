@@ -43,7 +43,7 @@ jobs:
 
           echo -e "\033[34m Cloning $PKG_NAME package \033[0m"
           rm -rf sdk/package
-          svn export https://github.com/Maizil41/luci-app-radius-monitor/trunk/luci-app-radmon-php8 sdk/package/
+          svn export https://github.com/Maizil41/luci-app-radius-monitor/tree/main/$PKG_NAME sdk/package/$PKG_NAME
 
       - name: Set up SDK feeds
         run: |
