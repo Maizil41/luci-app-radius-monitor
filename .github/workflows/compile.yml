@@ -57,13 +57,13 @@ jobs:
 
     - name: List Output Directory
       run: |
-        ls -l bin/packages/x86_64/base/
+        ls -l bin/packages/x86_64/luci/
     
     - name: Check Failed Radmon PHP7
       if: env.BUILD_FAILED != 'true'
       run: |
-        if [ -f "bin/packages/x86_64/base/luci-app-radmon-php7_${{ steps.get_radmon_php7.outputs.radmon_php7 }}_all.ipk" ]; then
-          mv bin/packages/x86_64/base/luci-app-radmon-php7_${{ steps.get_radmon_php7.outputs.radmon_php7 }}_all.ipk ../luci-app-radmon-php7_${{ steps.get_radmon_php7.outputs.radmon_php7 }}_all.ipk
+        if [ -f "bin/packages/x86_64/luci/luci-app-radmon-php7_${{ steps.get_radmon_php7.outputs.radmon_php7 }}_all.ipk" ]; then
+          mv bin/packages/x86_64/luci/luci-app-radmon-php7_${{ steps.get_radmon_php7.outputs.radmon_php7 }}_all.ipk ../luci-app-radmon-php7_${{ steps.get_radmon_php7.outputs.radmon_php7 }}_all.ipk
         else
           echo "File IPK untuk PHP7 tidak ditemukan."
           exit 1
@@ -96,8 +96,8 @@ jobs:
     - name: Check Failed Radmon PHP8
       if: env.BUILD_FAILED != 'true'
       run: |
-        if [ -f "bin/packages/x86_64/base/luci-app-radmon-php8_${{ steps.get_radmon_php8.outputs.radmon_php8 }}_all.ipk" ]; then
-          mv bin/packages/x86_64/base/luci-app-radmon-php8_${{ steps.get_radmon_php8.outputs.radmon_php8 }}_all.ipk ../luci-app-radmon-php8_${{ steps.get_radmon_php8.outputs.radmon_php8 }}_all.ipk
+        if [ -f "bin/packages/x86_64/luci/luci-app-radmon-php8_${{ steps.get_radmon_php8.outputs.radmon_php8 }}_all.ipk" ]; then
+          mv bin/packages/x86_64/luci/luci-app-radmon-php8_${{ steps.get_radmon_php8.outputs.radmon_php8 }}_all.ipk ../luci-app-radmon-php8_${{ steps.get_radmon_php8.outputs.radmon_php8 }}_all.ipk
         else
           echo "File IPK untuk PHP7 tidak ditemukan."
           exit 1
