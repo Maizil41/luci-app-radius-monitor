@@ -42,14 +42,7 @@ jobs:
           mkdir -p sdk && tar -xf sdk.tar.xz -C sdk --strip-components=1
 
           echo -e "\033[34m Cloning $PKG_NAME package \033[0m"
-          rm -rf sdk/package
-          mkdir -p sdk/package
-          cd sdk/package
-          git init
-          git remote add origin https://github.com/Maizil41/luci-app-radius-monitor.git
-          git config core.sparseCheckout true
-          echo "luci-app-radmon-php8/*" >> .git/info/sparse-checkout
-          git pull origin main
+          cd sdk/package && git init && git remote add origin https://github.com/Maizil41/luci-app-radius-monitor.git && git config core.sparseCheckout true && echo "luci-app-radmon-php8/*" >> .git/info/sparse-checkout && git pull origin main
 
       - name: Set up SDK feeds
         run: |
