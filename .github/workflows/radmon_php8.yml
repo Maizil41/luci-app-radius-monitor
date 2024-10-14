@@ -57,17 +57,22 @@ jobs:
       - name: Configure & compile IPK
         run: |
           echo -e "\033[34m Configuring SDK \033[0m"
-          cd sdk && make defconfig > /dev/null 2>&1
+          cd sdk && make defconfig
           rm -rf feeds/luci/contrib/package/csstidy
           sed -i '/^CONFIG_LUCI_JSMIN=/d' .config
           sed -i '/^CONFIG_LUCI_CSSTIDY=/d' .config
 
           echo -e "\033[34m Compiling ${PKG_NAME} package \033[0m"
-          make package/${PKG_NAME}/{clean,compile} -j$(nproc) > /dev/null 2>&1
+          make package/${PKG_NAME}/{clean,compile} -j$(nproc)
 
           echo -e "\033[34m Compilation completed: \033[0m"
-          PKG_PATH=$(find bin/packages/x86_64/luci/ -name 'luci-app-*.ipk')
-          PKG_FILE=$(basename $PKG_PATH)
+          PKG_PATH=$(find bin/packages/x86_64/luci/ -name "${PKG_NAME}.ipk")
+          if [ -z "$PKG_PATH" ]; then
+            echo -e "\033[31m Error: Package not found! \033[0m"
+            exit 1
+          fi
+          
+          PKG_FILE=$(basename "$PKG_PATH")
           echo "PKG_PATH=sdk/$PKG_PATH" >> $GITHUB_ENV
           echo "PKG_FILE=$PKG_FILE" >> $GITHUB_ENV
           echo -e "\033[34m\t Package path:\033[37m $PKG_PATH \033[0m"
