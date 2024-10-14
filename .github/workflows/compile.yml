@@ -52,11 +52,13 @@ jobs:
         sed -i 's/# CONFIG_NO_STRIP is not set/CONFIG_NO_STRIP=y/' .config
         sed -i 's/CONFIG_USE_STRIP=y/# CONFIG_USE_STRIP is not set/' .config
         sed -i 's/CONFIG_USE_SSTRIP=y/# CONFIG_USE_SSTRIP is not set/' .config
-        make package/luci-app-radmon-php7/compile V=s -j$(nproc) || echo "BUILD_FAILED=true" >> $GITHUB_ENV
-        if [ "${{ env.BUILD_FAILED }}" != "true" ]; then
-          mv bin/packages/x86_64/base/luci-app-radmon-php7*.ipk ../luci-app-radmon-php7_${{ steps.get_radmon_php7.outputs.radmon_php7 }}_all.ipk
-        fi
-
+        (make package/luci-app-radmon-php7/compile V=s -j$(nproc) || echo "BUILD_FAILED=true" >> $GITHUB_ENV) > /dev/null 2>&1
+        
+    - name: Check Failed Radmon PHP7
+      if: env.BUILD_FAILED != 'true'
+      run: |
+        mv bin/packages/x86_64/base/luci-app-radmon-php7*.ipk ../luci-app-radmon-php7_${{ steps.get_radmon_php7.outputs.radmon_php7 }}_all.ipk
+    
     - name: Get Ramon PHP8
       id: get_radmon_php8
       run: |
@@ -79,42 +81,27 @@ jobs:
         sed -i 's/# CONFIG_NO_STRIP is not set/CONFIG_NO_STRIP=y/' .config
         sed -i 's/CONFIG_USE_STRIP=y/# CONFIG_USE_STRIP is not set/' .config
         sed -i 's/CONFIG_USE_SSTRIP=y/# CONFIG_USE_SSTRIP is not set/' .config
-        make package/luci-app-radmon-php8/compile V=s -j$(nproc) || echo "BUILD_FAILED=true" >> $GITHUB_ENV
-        if [ "${{ env.BUILD_FAILED }}" != "true" ]; then
-          mv bin/packages/x86_64/base/luci-app-radmon-php8*.ipk ../luci-app-radmon-php8_${{ steps.get_radmon_php8.outputs.radmon_php8 }}_all.ipk
-        fi
-    
-    - name: Check Existing Release
-      id: check_release
+        (make package/luci-app-radmon-php8/compile V=s -j$(nproc) || echo "BUILD_FAILED=true" >> $GITHUB_ENV) > /dev/null 2>&1
+
+    - name: Check Failed Radmon PHP8
+      if: env.BUILD_FAILED != 'true'
       run: |
-        if [ -n "${{ steps.get_radmon_php7.outputs.radmon_php7 }}" ]; then
-          php7_exists=$(curl -s -o /dev/null -w "%{http_code}" https://github.com/${{ github.repository }}/releases/download/${{ steps.get_radmon_php7.outputs.radmon_php7 }}/luci-app-radmon-php7_${{ steps.get_radmon_php7.outputs.radmon_php7 }}_all.ipk)
-          echo "php7_exists=${php7_exists}" >> $GITHUB_OUTPUT
-        else
-          echo "php7_exists=404" >> $GITHUB_OUTPUT
-        fi
-        if [ -n "${{ steps.get_radmon_php8.outputs.radmon_php8 }}" ]; then
-          php8_exists=$(curl -s -o /dev/null -w "%{http_code}" https://github.com/${{ github.repository }}/releases/download/${{ steps.get_radmon_php8.outputs.radmon_php8 }}/luci-app-radmon-php8_${{ steps.get_radmon_php8.outputs.radmon_php8 }}_all.ipk)
-          echo "php8_exists=${php8_exists}" >> $GITHUB_OUTPUT
-        else
-          echo "php8_exists=404" >> $GITHUB_OUTPUT
-        fi
+        mv bin/packages/x86_64/base/luci-app-radmon-php8*.ipk ../luci-app-radmon-php8_${{ steps.get_radmon_php8.outputs.radmon_php8 }}_all.ipk
 
     - name: Create Release
       if: env.BUILD_FAILED != 'true'
       env:
         GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
       run: |
-        release_date=$(date +'%y%m%d')
+        release_date=$(date +'%Y.%m.%d')
         release_name="${{ steps.get_radmon_php7.outputs.radmon_php7 }}"
         release_tag="${release_date}"
 
         gh release create "$release_tag" \
-          --title "$release_name" \
+          --title "$release_tag" \
           --generate-notes=false
 
     - name: Upload PHP7 IPK
-      if: env.BUILD_FAILED != 'true' && steps.check_release.outputs.php7_exists != '200'
       env:
         GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
       run: |
@@ -122,7 +109,6 @@ jobs:
           ./luci-app-radmon-php7_${{ steps.get_radmon_php7.outputs.radmon_php7 }}_all.ipk
 
     - name: Upload PHP8 IPK
-      if: env.BUILD_FAILED != 'true' && steps.check_release.outputs.php8_exists != '200'
       env:
         GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
       run: |
