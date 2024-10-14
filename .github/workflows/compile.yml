@@ -38,7 +38,7 @@ jobs:
 
     - name: Prepare Radmon PHP7
       run: |
-        cd openwrt-sdk
+        cd sdk
         mkdir -p package/luci-app-radmon-php7
         cp -R ../luci-app-radmon-php7/* package/luci-app-radmon-php7/
 
@@ -65,7 +65,7 @@ jobs:
 
     - name: Prepare Radmon PHP8
       run: |
-        cd openwrt-sdk
+        cd sdk
         mkdir -p package/luci-app-radmon-php8
         cp -R ../luci-app-radmon-php8/* package/luci-app-radmon-php8/
 
