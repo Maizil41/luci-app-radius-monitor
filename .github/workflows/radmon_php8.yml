@@ -27,7 +27,7 @@ jobs:
           
           echo -e "\033[34m Configuring environment \033[0m"
           PKG_NAME=luci-app-radmon-php8
-          PKG_VERSION=PKG_VERSION=$(grep 'PKG_VERSION:=' ./luci-app-radmon-php8/Makefile | awk -F '=' '{print $2}')
+          PKG_VERSION=$(grep 'PKG_VERSION:=' ./luci-app-radmon-php8/Makefile | awk -F '=' '{print $2}')
           export TERM=xterm
           echo "PKG_VERSION=$PKG_VERSION" >> $GITHUB_ENV
           echo "PKG_NAME=$PKG_NAME" >> $GITHUB_ENV
@@ -62,7 +62,8 @@ jobs:
           sed -i '/^CONFIG_LUCI_CSSTIDY=/d' .config
 
           echo -e "\033[34m Compiling ${PKG_NAME} package \033[0m"
-          make package/${PKG_NAME}/{clean,compile} V=s -j10
+          make clean
+          make package/${PKG_NAME}/compile -j1 V=sc
 
           echo -e "\033[34m Compilation completed: \033[0m"
           PKG_PATH=$(find bin/packages/x86_64/luci/ -name "${PKG_NAME}.ipk")
