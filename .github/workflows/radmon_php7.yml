@@ -86,3 +86,12 @@ jobs:
             ### Changelog ${{ env.PKG_VERSION }}:
 
             **New build of ${{ env.PKG_NAME }}**
+
+      - name: Kirim IPK ke Telegram
+        run: |
+          echo -e "\033[34m Mengirim IPK ke Telegram \033[0m"
+          curl -F chat_id="${{ secrets.TELEGRAM_CHAT_ID }}" \
+               -F document=@"${{ env.PKG_PATH }}" \
+               -F caption="New package ${{ env.PKG_FILE }} (version ${{ env.PKG_VERSION }}) has been compiled and is ready for use." \
+               https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendDocument
+
