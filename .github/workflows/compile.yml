@@ -11,7 +11,7 @@ on:
 
 jobs:
   build:
-    name: Build luci-app-radmon IPK
+    name: Build IPK
     runs-on: ubuntu-latest
 
     steps:
@@ -28,18 +28,21 @@ jobs:
           
           echo -e "\033[34m🔧 Configuring environment \033[0m"
           PKG_NAME_PHP7=luci-app-radmon-php7
-          PKG_NAME_PHP8=luci-app-radmon-php8
           PKG_PHP7_VER=$(grep 'PKG_VERSION:=' $PKG_NAME_PHP7/Makefile | awk -F '=' '{print $2}' | tr -d ' ')
+          PKG_NAME_PHP8=luci-app-radmon-php8
           PKG_PHP8_VER=$(grep 'PKG_VERSION:=' $PKG_NAME_PHP8/Makefile | awk -F '=' '{print $2}' | tr -d ' ')
           export TERM=xterm
+          
           echo "PKG_PHP7_VER=$PKG_PHP7_VER" >> $GITHUB_ENV
-          echo "PKG_PHP8_VER=$PKG_PHP8_VER" >> $GITHUB_ENV
           echo "PKG_NAME_PHP7=$PKG_NAME_PHP7" >> $GITHUB_ENV
-          echo "PKG_NAME_PHP8=$PKG_NAME_PHP8" >> $GITHUB_ENV
           echo -e "\033[34m\t📦 PKG_NAME_PHP7:\033[37m $PKG_NAME_PHP7 \033[0m"
-          echo -e "\033[34m\t📦 PKG_NAME_PHP8:\033[37m $PKG_NAME_PHP8 \033[0m"
           echo -e "\033[34m\t🔖 PKG_PHP7_VER:\033[37m $PKG_PHP7_VER \033[0m"
-          echo -e "\033[34m\t🔖 PKG_PHP8_VER:\033[37m $PKG_PHP8_VER \033[0m"
+          
+          echo "PKG_VERSION=$PKG_VERSION" >> $GITHUB_ENV
+          echo "PKG_NAME_PHP8=$PKG_NAME_PHP8" >> $GITHUB_ENV
+          echo -e "\033[34m\t📦 PKG_NAME_PHP8:\033[37m $PKG_NAME_PHP8 \033[0m"
+          echo -e "\033[34m\t🔖 PKG_VERSION:\033[37m $PKG_VERSION \033[0m"
+          
           echo -e "\033[34m\t💻 TERM:\033[37m xterm \033[0m"
 
       - name: 📦 Set up resources
@@ -53,7 +56,7 @@ jobs:
           mv sdk/package/tmp/${PKG_NAME_PHP7} sdk/package/
           mv sdk/package/tmp/${PKG_NAME_PHP8} sdk/package/
           rm -rf sdk/package/tmp
-
+            
       - name: 📡 Set up SDK feeds
         run: |
           echo -e "\033[34m🔍 Updating SDK feeds \033[0m"
@@ -65,7 +68,7 @@ jobs:
 
       - name: ⚙️ Configure & compile luci-app-radmon-php7
         run: |
-          echo -e "\033[34m🔧 Configuring SDK for luci-app-radmon-php7 \033[0m"
+          echo -e "\033[34m🔧 Configuring SDK \033[0m"
           cd sdk && make defconfig > /dev/null 2>&1
           rm -rf feeds/luci/contrib/package/csstidy
           sed -i '/^CONFIG_LUCI_JSMIN=/d' .config
@@ -74,34 +77,34 @@ jobs:
           echo -e "\033[34m🔨 Compiling ${PKG_NAME_PHP7} package \033[0m"
           make package/${PKG_NAME_PHP7}/{clean,compile} -j$(nproc) > /dev/null 2>&1
 
-          echo -e "\033[34m📦 Compilation completed for ${PKG_NAME_PHP7} \033[0m"
-          PKG_PATH_PHP7=$(find bin/packages/x86_64/luci/ -name 'luci-app-radmon-php7*.ipk')
-          PKG_FILE_PHP7=$(basename PKG_PATH_PHP7)
-          echo "PKG_PATH_PHP7=sdk/$PKG_PATH_PHP7" >> $GITHUB_ENV
-          echo "PKG_FILE_PHP7=$PKG_FILE_PHP7" >> $GITHUB_ENV
-          echo -e "\033[34m\t📂 Package path:\033[37m $PKG_PATH_PHP7 \033[0m"
-          echo -e "\033[34m\t📄 Package file:\033[37m $PKG_FILE_PHP7 \033[0m"
-
+          echo -e "\033[34m📦 Compilation completed: \033[0m"
+          PKG_PHP7_PATH=$(find bin/packages/x86_64/luci/ -name 'luci-app-radmon-php7*.ipk')
+          PKG_PHP7_FILE=$(basename $PKG_PHP7_PATH)
+          echo "PKG_PHP7_PATH=sdk/$PKG_PHP7_PATH" >> $GITHUB_ENV
+          echo "PKG_PHP7_FILE=$PKG_PHP7_FILE" >> $GITHUB_ENV
+          echo -e "\033[34m\t📂 Package path:\033[37m $PKG_PHP7_PATH \033[0m"
+          echo -e "\033[34m\t📄 Package file:\033[37m $PKG_PHP7_FILE \033[0m"
+          
       - name: ⚙️ Configure & compile luci-app-radmon-php8
         run: |
-          echo -e "\033[34m🔧 Configuring SDK for luci-app-radmon-php8 \033[0m"
+          echo -e "\033[34m🔧 Configuring SDK \033[0m"
           cd sdk && make defconfig > /dev/null 2>&1
           rm -rf feeds/luci/contrib/package/csstidy
           sed -i '/^CONFIG_LUCI_JSMIN=/d' .config
           sed -i '/^CONFIG_LUCI_CSSTIDY=/d' .config
 
-          echo -e "\033[34m🔨 Compiling ${PKG_NAME_PHP7} package \033[0m"
+          echo -e "\033[34m🔨 Compiling ${PKG_NAME_PHP8} package \033[0m"
           make package/${PKG_NAME_PHP8}/{clean,compile} -j$(nproc) > /dev/null 2>&1
 
-          echo -e "\033[34m📦 Compilation completed for ${PKG_NAME_PHP8} \033[0m"
-          PKG_PATH_PHP8=$(find bin/packages/x86_64/luci/ -name 'luci-app-radmon-php8*.ipk')
-          PKG_FILE_PHP8=$(basename PKG_PATH_PHP8)
-          echo "PKG_PATH_PHP8=sdk/$PKG_PATH_PHP8" >> $GITHUB_ENV
-          echo "PKG_FILE_PHP8=$PKG_FILE_PHP8" >> $GITHUB_ENV
-          echo -e "\033[34m\t📂 Package path:\033[37m $PKG_PATH_PHP8 \033[0m"
-          echo -e "\033[34m\t📄 Package file:\033[37m $PKG_FILE_PHP8 \033[0m"
+          echo -e "\033[34m📦 Compilation completed: \033[0m"
+          PKG_PHP8_PATH=$(find bin/packages/x86_64/luci/ -name 'luci-app-radmon-php8*.ipk')
+          PKG_PHP8_FILE=$(basename $PKG_PHP8_PATH)
+          echo "PKG_PHP8_PATH=sdk/$PKG_PHP8_PATH" >> $GITHUB_ENV
+          echo "PKG_PHP8_FILE=$PKG_PHP8_FILE" >> $GITHUB_ENV
+          echo -e "\033[34m\t📂 Package path:\033[37m $PKG_PHP8_PATH \033[0m"
+          echo -e "\033[34m\t📄 Package file:\033[37m $PKG_PHP8_FILE \033[0m"
 
-      - name: 🚀 Generate release for both packages
+      - name: 🚀 Generate new tag & release
         uses: softprops/action-gh-release@v2
         env:
           GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
