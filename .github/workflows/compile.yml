@@ -1,32 +1,130 @@
-name: Test Build
+name: Build PHP7 and PHP8
 
 on:
-  pull_request:
+  push:
     branches:
-      - main
-  
+      - master
+    paths:
+      - 'luci-app-radmon-php7/Makefile'
+      - 'luci-app-radmon-php8/Makefile'
+  workflow_dispatch:
+
 jobs:
-  build:
-    name: ${{ matrix.arch }} build
+  build-php7:
+    name: Build PHP7
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        arch:
-          - x86_64
-          - mips_24kc
 
     steps:
-      - uses: actions/checkout@v2
-        with:
-          fetch-depth: 0
+      - name: 🔄 Checkout repository
+        uses: actions/checkout@v4
 
-      - name: Build
-        uses: openwrt/gh-action-sdk@main
+      - name: 🛠️ Set up build environment for PHP7
+        run: |
+          echo -e "\033[34m🔨 Preparing build environment for PHP7 \033[0m"
+          sudo -E apt-get update > /dev/null 2>&1
+          sudo -E apt-get install build-essential clang flex bison g++ gawk gcc-multilib g++-multilib gettext git libncurses5-dev libssl-dev python3-setuptools rsync swig unzip zlib1g-dev file wget > /dev/null 2>&1
+          sudo -E apt-get autoremove --purge > /dev/null 2>&1
+          sudo -E apt-get clean > /dev/null 2>&1
+
+      - name: 📦 Set up resources for PHP7
+        run: |
+          echo -e "\033[34m🗂️ Downloading SDK OpenWRT \033[0m"
+          curl -s -L https://downloads.openwrt.org/releases/23.05.4/targets/x86/64/openwrt-sdk-23.05.4-x86-64_gcc-12.3.0_musl.Linux-x86_64.tar.xz -o sdk.tar.xz
+          mkdir sdk && tar -xf sdk.tar.xz -C sdk --strip-components=1
+
+          echo -e "\033[34m📦 Cloning luci-app-radmon-php7 package \033[0m"
+          git clone -q https://github.com/${{ github.repository }} sdk/package/tmp
+          mv sdk/package/tmp/luci-app-radmon-php7 sdk/package/
+          rm -rf sdk/package/tmp
+
+      - name: 📡 Set up SDK feeds for PHP7
+        run: |
+          echo -e "\033[34m🔍 Updating SDK feeds \033[0m"
+          cd sdk
+          ./scripts/feeds update -a > /dev/null 2>&1
+          ./scripts/feeds install -a > /dev/null 2>&1
+
+      - name: ⚙️ Configure & compile IPK for PHP7
+        run: |
+          echo -e "\033[34m🔨 Compiling luci-app-radmon-php7 package \033[0m"
+          cd sdk && make package/luci-app-radmon-php7/{clean,compile} -j$(nproc) > /dev/null 2>&1
+
+      - name: Save PHP7 IPK path
+        run: |
+          PKG_PATH=$(find sdk/bin/packages/x86_64/luci/ -name 'luci-app-*.ipk')
+          echo "PHP7_PKG_PATH=$PKG_PATH" >> $GITHUB_ENV
+          echo "PHP7_PKG_FILE=$(basename $PKG_PATH)" >> $GITHUB_ENV
+
+  build-php8:
+    name: Build PHP8
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 🔄 Checkout repository
+        uses: actions/checkout@v4
+
+      - name: 🛠️ Set up build environment for PHP8
+        run: |
+          echo -e "\033[34m🔨 Preparing build environment for PHP8 \033[0m"
+          sudo -E apt-get update > /dev/null 2>&1
+          sudo -E apt-get install build-essential clang flex bison g++ gawk gcc-multilib g++-multilib gettext git libncurses5-dev libssl-dev python3-setuptools rsync swig unzip zlib1g-dev file wget > /dev/null 2>&1
+          sudo -E apt-get autoremove --purge > /dev/null 2>&1
+          sudo -E apt-get clean > /dev/null 2>&1
+
+      - name: 📦 Set up resources for PHP8
+        run: |
+          echo -e "\033[34m🗂️ Downloading SDK OpenWRT \033[0m"
+          curl -s -L https://downloads.openwrt.org/releases/23.05.4/targets/x86/64/openwrt-sdk-23.05.4-x86-64_gcc-12.3.0_musl.Linux-x86_64.tar.xz -o sdk.tar.xz
+          mkdir sdk && tar -xf sdk.tar.xz -C sdk --strip-components=1
+
+          echo -e "\033[34m📦 Cloning luci-app-radmon-php8 package \033[0m"
+          git clone -q https://github.com/${{ github.repository }} sdk/package/tmp
+          mv sdk/package/tmp/luci-app-radmon-php8 sdk/package/
+          rm -rf sdk/package/tmp
+
+      - name: 📡 Set up SDK feeds for PHP8
+        run: |
+          echo -e "\033[34m🔍 Updating SDK feeds \033[0m"
+          cd sdk
+          ./scripts/feeds update -a > /dev/null 2>&1
+          ./scripts/feeds install -a > /dev/null 2>&1
+
+      - name: ⚙️ Configure & compile IPK for PHP8
+        run: |
+          echo -e "\033[34m🔨 Compiling luci-app-radmon-php8 package \033[0m"
+          cd sdk && make package/luci-app-radmon-php8/{clean,compile} -j$(nproc) > /dev/null 2>&1
+
+      - name: Save PHP8 IPK path
+        run: |
+          PKG_PATH=$(find sdk/bin/packages/x86_64/luci/ -name 'luci-app-*.ipk')
+          echo "PHP8_PKG_PATH=$PKG_PATH" >> $GITHUB_ENV
+          echo "PHP8_PKG_FILE=$(basename $PKG_PATH)" >> $GITHUB_ENV
+
+  release:
+    name: Create Release
+    runs-on: ubuntu-latest
+    needs: [build-php7, build-php8]  # Ini memastikan job "release" hanya berjalan setelah build-php7 dan build-php8 selesai
+
+    steps:
+      - name: ⏰ Set up date for tag and release name
+        id: set_tag_date
+        run: |
+          echo "tag_name=$(date +'%Y.%m.%d')" >> $GITHUB_ENV
+          echo "release_name=$(date +'%Y-%m-%d')" >> $GITHUB_ENV
+
+      - name: 🚀 Generate new tag & release
+        uses: softprops/action-gh-release@v2
         env:
-          ARCH: ${{ matrix.arch }}
-
-      - name: Store packages
-        uses: actions/upload-artifact@v2
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
         with:
-          name: ${{ matrix.arch}}-packages
-          path: bin/packages/${{ matrix.arch }}/packages/*.ipk
+          name: ${{ env.release_name }}
+          tag_name: ${{ env.tag_name }}
+          draft: false
+          prerelease: false
+          files: |
+            ${{ env.PHP7_PKG_PATH }}
+            ${{ env.PHP8_PKG_PATH }}
+          body: |
+            ### Changelog:
+            **PHP7 Package**: ${{ env.PHP7_PKG_FILE }}
+            **PHP8 Package**: ${{ env.PHP8_PKG_FILE }}
