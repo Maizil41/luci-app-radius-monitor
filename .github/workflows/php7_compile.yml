@@ -74,19 +74,19 @@ jobs:
           echo -e "\033[34m\t📂 Package path:\033[37m $PKG_PATH \033[0m"
           echo -e "\033[34m\t📄 Package file:\033[37m $PKG_FILE \033[0m"
 
-      - name: Set up date for tag and release name
+      - name: ⏰ Set up date for tag and release name
         id: set_tag_date
         run: |
-          echo "::set-output name=tag_name::$(date +'%Y.%m.%d')"
-          echo "::set-output name=release_name::$(date +'%Y-%m-%d')"
+          echo "tag_name=$(date +'%Y.%m.%d')" >> $GITHUB_ENV
+          echo "release_name=$(date +'%Y-%m-%d')" >> $GITHUB_ENV
 
       - name: 🚀 Generate new tag & release
         uses: softprops/action-gh-release@v2
         env:
           GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
         with:
-          name: ${{ steps.set_tag_date.outputs.release_name }}
-          tag_name: ${{ steps.set_tag_date.outputs.tag_name }}
+          name: ${{ env.release_name }}
+          tag_name: ${{ env.tag_name }}
           draft: false
           prerelease: false
           files: ${{ env.PKG_PATH }}
