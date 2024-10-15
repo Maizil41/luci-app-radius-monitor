@@ -105,13 +105,11 @@ jobs:
           draft: false
           prerelease: false
           files: |
-            ${{ env.php7_PKG_PATH }}
-            ${{ env.php8_PKG_PATH }}
+            ${{ env.php7_PKG_FILE }}
+            ${{ env.php8_PKG_FILE }}
           body: |
-            ### Changelog:
-            **PHP7 Package**: ${{ env.php7_PKG_FILE }}
-            **PHP8 Package**: ${{ env.php8_PKG_FILE }}
-
+            ### Changelog ${{ env.tag_name }}
+      
       - name: 📬 Send notification to Telegram
         run: |
           curl -s -X POST "https://api.telegram.org/bot${{ secrets.BOT_TOKEN }}/sendMessage" \
