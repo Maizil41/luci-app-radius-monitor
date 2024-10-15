@@ -76,7 +76,7 @@ jobs:
           echo -e "\033[34m\t📂 Package path:\033[37m $PKG_PATH \033[0m"
           echo -e "\033[34m\t📄 Package file:\033[37m $(basename $PKG_PATH) \033[0m"
 
-      - name: 📦 Upload IPK artifacts
+      - name: ⬆️ Upload IPK To Release
         uses: actions/upload-artifact@v3
         with:
           name: ipk-${{ matrix.php_version }}
@@ -94,13 +94,13 @@ jobs:
           echo "tag_name=$(date +'%Y.%m.%d')" >> $GITHUB_ENV
           echo "release_name=$(date +'%Y-%m-%d')" >> $GITHUB_ENV
 
-      - name: 📥 Download IPK artifacts
+      - name: 📥 Download IPK PHP7
         uses: actions/download-artifact@v3
         with:
           name: ipk-php7
           path: ./artifacts/php7/
           
-      - name: 📥 Download IPK artifacts
+      - name: 📥 Download IPK PHP8
         uses: actions/download-artifact@v3
         with:
           name: ipk-php8
@@ -119,12 +119,10 @@ jobs:
             ./artifacts/php7/luci-app-radmon-php7*.ipk
             ./artifacts/php8/luci-app-radmon-php8*.ipk
           body: |
-            ### Changelog:
-            **PHP7 Package**: luci-app-radmon-php7*.ipk
-            **PHP8 Package**: luci-app-radmon-php8*.ipk
+            ### Changelog ${{ env.release_name }}
 
       - name: 📬 Send notification to Telegram
         run: |
           curl -s -X POST "https://api.telegram.org/bot${{ secrets.BOT_TOKEN }}/sendMessage" \
           -d "chat_id=${{ secrets.CHAT_ID }}" \
-          -d "text=New release created for luci-app-radmon"
+          -d "text=New release for luci-app-radmon, Changelog ${{ env.release_name }}"
