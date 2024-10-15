@@ -1,4 +1,4 @@
-name: BUild PHP7
+name: Build PHP7
 
 on:
   push:
@@ -10,7 +10,7 @@ on:
 
 jobs:
   build:
-    name: BUild PHP7
+    name: Build PHP7
     runs-on: ubuntu-latest
 
     steps:
@@ -79,8 +79,8 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
         with:
-          name: "$(date +'%Y-%m-%d')"
-          tag_name: "$(date +'%Y.%m.%d')"
+          tag_name: ${{ github.run_date | date('Y.MM.dd') }}
+          name: ${{ github.run_date | date('Y-MM-dd') }}
           draft: false
           prerelease: false
           files: ${{ env.PKG_PATH }}
