@@ -20,14 +20,6 @@ jobs:
       - name: 🔄 Checkout repository
         uses: actions/checkout@v4
 
-      - name: ♻️ Cache SDK
-        uses: actions/cache@v3
-        with:
-          path: sdk
-          key: ${{ runner.os }}-openwrt-sdk-${{ matrix.php_version }}-${{ hashFiles('sdk.tar.xz') }}
-          restore-keys: |
-            ${{ runner.os }}-openwrt-sdk-${{ matrix.php_version }}-
-
       - name: 🛠️ Set up build environment
         run: |
           echo -e "\033[34m🔨 Preparing build environment \033[0m"
