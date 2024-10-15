@@ -1,4 +1,4 @@
-name: BUild PHP8
+name: Build PHP8
 
 on:
   push:
@@ -10,7 +10,7 @@ on:
 
 jobs:
   build:
-    name: BUild PHP8
+    name: Build PHP8
     runs-on: ubuntu-latest
 
     steps:
