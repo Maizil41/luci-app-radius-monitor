@@ -87,12 +87,12 @@ jobs:
           echo "tag_name=$(date +'%Y.%m.%d')" >> $GITHUB_ENV
           echo "release_name=$(date +'%Y-%m-%d')" >> $GITHUB_ENV
 
-    - name: 📋 Debug Environment Variables
-      run: |
-        echo "php7_PKG_PATH=${{ env.php7_PKG_PATH }}"
-        echo "php8_PKG_PATH=${{ env.php8_PKG_PATH }}"
-        echo "php7_PKG_FILE=${{ env.php7_PKG_FILE }}"
-        echo "php8_PKG_FILE=${{ env.php8_PKG_FILE }}"
+      - name: 📋 Debug Environment Variables
+        run: |
+          echo "php7_PKG_PATH=${{ env.php7_PKG_PATH }}"
+          echo "php8_PKG_PATH=${{ env.php8_PKG_PATH }}"
+          echo "php7_PKG_FILE=${{ env.php7_PKG_FILE }}"
+          echo "php8_PKG_FILE=${{ env.php8_PKG_FILE }}"
 
       - name: 🚀 Generate new tag & release
         uses: softprops/action-gh-release@v2
