@@ -82,12 +82,12 @@ jobs:
     needs: [build]
 
     steps:
-      - name: 📋 Debug Environment Variables
+      - name: 📋 Debug Output in Build Job
         run: |
-          echo "php7_PKG_PATH=${{ needs.build.outputs.php7_PKG_PATH }}"
-          echo "php8_PKG_PATH=${{ needs.build.outputs.php8_PKG_PATH }}"
-          echo "php7_PKG_FILE=${{ needs.build.outputs.php7_PKG_FILE }}"
-          echo "php8_PKG_FILE=${{ needs.build.outputs.php8_PKG_FILE }}"
+          echo "PHP7 Path: ${{ steps.save_ipk_path.outputs.php7_PKG_PATH }}"
+          echo "PHP8 Path: ${{ steps.save_ipk_path.outputs.php8_PKG_PATH }}"
+          echo "PHP7 File: ${{ steps.save_ipk_path.outputs.php7_PKG_FILE }}"
+          echo "PHP8 File: ${{ steps.save_ipk_path.outputs.php8_PKG_FILE }}"
 
       - name: 🚀 Generate new tag & release
         uses: softprops/action-gh-release@v2
