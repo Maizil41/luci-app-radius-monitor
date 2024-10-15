@@ -68,6 +68,7 @@ jobs:
           make package/${PKG_NAME}/{clean,compile} -j$(nproc) > /dev/null 2>&1
 
       - name: ⬇️ Save IPK path
+        id: save_ipk_path
         run: |
           PKG_PATH=$(find sdk/bin/packages/x86_64/luci/ -name 'luci-app-radmon-${{ matrix.php_version }}*.ipk')
           echo "${{ matrix.php_version }}_PKG_PATH=$PKG_PATH" >> $GITHUB_ENV
@@ -75,10 +76,11 @@ jobs:
           echo -e "\033[34m\t📂 Package path:\033[37m $PKG_PATH \033[0m"
           echo -e "\033[34m\t📄 Package file:\033[37m $(basename $PKG_PATH) \033[0m"
 
-      - name: 📦 Store Package Paths
-        run: |
-          echo "php7_PKG_PATH=${{ env.php7_PKG_PATH }}" >> $GITHUB_ENV
-          echo "php8_PKG_PATH=${{ env.php8_PKG_PATH }}" >> $GITHUB_ENV
+      - name: 📦 Upload IPK artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: ipk-${{ matrix.php_version }}
+          path: sdk/bin/packages/x86_64/luci/luci-app-radmon-${{ matrix.php_version }}*.ipk
 
   release:
     name: Create Release
@@ -92,6 +94,18 @@ jobs:
           echo "tag_name=$(date +'%Y.%m.%d')" >> $GITHUB_ENV
           echo "release_name=$(date +'%Y-%m-%d')" >> $GITHUB_ENV
 
+      - name: 📥 Download IPK artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: ipk-php7
+          path: ./artifacts/php7/
+          
+      - name: 📥 Download IPK artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: ipk-php8
+          path: ./artifacts/php8/
+
       - name: 🚀 Generate new tag & release
         uses: softprops/action-gh-release@v2
         env:
@@ -102,12 +116,12 @@ jobs:
           draft: false
           prerelease: false
           files: |
-            ${{ env.php7_PKG_PATH }}
-            ${{ env.php8_PKG_PATH }}
+            ./artifacts/php7/luci-app-radmon-php7*.ipk
+            ./artifacts/php8/luci-app-radmon-php8*.ipk
           body: |
             ### Changelog:
-            **PHP7 Package**: ${{ env.php7_PKG_FILE }}
-            **PHP8 Package**: ${{ env.php8_PKG_FILE }}
+            **PHP7 Package**: luci-app-radmon-php7*.ipk
+            **PHP8 Package**: luci-app-radmon-php8*.ipk
 
       - name: 📬 Send notification to Telegram
         run: |
