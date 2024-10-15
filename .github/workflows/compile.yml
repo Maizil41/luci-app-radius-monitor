@@ -1,5 +1,4 @@
-name: Build PHP7 and PHP8
-
+name: Build IPK
 on:
   push:
     branches:
@@ -10,51 +9,60 @@ on:
   workflow_dispatch:
 
 jobs:
-  build-php7:
-    name: Build PHP7
+  build:
+    name: Build Packages
     runs-on: ubuntu-latest
-
+    strategy:
+      matrix:
+        php_version: [php7, php8]
+    
     steps:
       - name: 🔄 Checkout repository
         uses: actions/checkout@v4
 
-      - name: 🛠️ Set up build environment for PHP7
+      - name: Cache SDK
+        uses: actions/cache@v3
+        with:
+          path: sdk.tar.xz
+          key: ${{ runner.os }}-sdk-tarball-${{ matrix.php_version }}-${{ hashFiles('sdk.tar.xz') }}
+
+      - name: 🛠️ Set up build environment
         run: |
           echo -e "\033[34m🔨 Preparing build environment \033[0m"
           sudo -E apt-get update > /dev/null 2>&1
           sudo -E apt-get install build-essential clang flex bison g++ gawk gcc-multilib g++-multilib gettext git libncurses5-dev libssl-dev python3-setuptools rsync swig unzip zlib1g-dev file wget > /dev/null 2>&1
           sudo -E apt-get autoremove --purge > /dev/null 2>&1
           sudo -E apt-get clean > /dev/null 2>&1
-          
-          echo -e "\033[34m🔧 Configuring environment for PHP \033[0m"
-          PKG_PHP7_NAME=luci-app-radmon-php7
-          PKG_PHP7_VER=$(grep 'PKG_VERSION:=' $PKG_PHP7_NAME/Makefile | awk -F '=' '{print $2}' | tr -d ' ')
+
+          echo -e "\033[34m🔧 Configuring environment for ${{ matrix.php_version }} \033[0m"
+          PKG_NAME=luci-app-radmon-${{ matrix.php_version }}
+          PKG_VER=$(grep 'PKG_VERSION:=' $PKG_NAME/Makefile | awk -F '=' '{print $2}' | tr -d ' ')
           export TERM=xterm
-          echo "PKG_PHP7_VER=$PKG_PHP7_VER" >> $GITHUB_ENV
-          echo "PKG_PHP7_NAME=$PKG_PHP7_NAME" >> $GITHUB_ENV
-          echo -e "\033[34m\t📦 PKG_PHP7_NAME:\033[37m $PKG_PHP7_NAME \033[0m"
-          echo -e "\033[34m\t🔖 PKG_PHP7_VER:\033[37m $PKG_PHP7_VER \033[0m"
+          echo "PKG_VER=$PKG_VER" >> $GITHUB_ENV
+          echo "PKG_NAME=$PKG_NAME" >> $GITHUB_ENV
+          echo -e "\033[34m\t📦 PKG_NAME:\033[37m $PKG_NAME \033[0m"
+          echo -e "\033[34m\t🔖 PKG_VER:\033[37m $PKG_VER \033[0m"
           echo -e "\033[34m\t💻 TERM:\033[37m xterm \033[0m"
 
-      - name: 📦 Set up resources for PHP7
+      - name: 📦 Set up resources
         run: |
           echo -e "\033[34m🗂️ Downloading SDK OpenWRT \033[0m"
           curl -s -L https://downloads.openwrt.org/releases/23.05.4/targets/x86/64/openwrt-sdk-23.05.4-x86-64_gcc-12.3.0_musl.Linux-x86_64.tar.xz -o sdk.tar.xz
           mkdir sdk && tar -xf sdk.tar.xz -C sdk --strip-components=1
 
-          echo -e "\033[34m📦 Cloning luci-app-radmon-php7 package \033[0m"
+          echo -e "\033[34m📦 Cloning ${{ matrix.php_version }} package \033[0m"
           git clone -q https://github.com/${{ github.repository }} sdk/package/tmp
-          mv sdk/package/tmp/${PKG_PHP7_NAME} sdk/package/
+          mv sdk/package/tmp/${PKG_NAME} sdk/package/
           rm -rf sdk/package/tmp
 
-      - name: 📡 Set up SDK feeds for PHP7
+      - name: 📡 Set up SDK feeds
         run: |
           echo -e "\033[34m🔍 Updating SDK feeds \033[0m"
           cd sdk
           ./scripts/feeds update -a > /dev/null 2>&1
           ./scripts/feeds install -a > /dev/null 2>&1
 
-      - name: ⚙️ Configure & compile IPK for PHP7
+      - name: ⚙️ Configure & compile IPK
         run: |
           echo -e "\033[34m🔧 Configuring SDK \033[0m"
           cd sdk && make defconfig > /dev/null 2>&1
@@ -62,84 +70,21 @@ jobs:
           sed -i '/^CONFIG_LUCI_JSMIN=/d' .config
           sed -i '/^CONFIG_LUCI_CSSTIDY=/d' .config
 
-          echo -e "\033[34m🔨 Compiling ${PKG_PHP7_NAME} package \033[0m"
-          make package/${PKG_PHP7_NAME}/{clean,compile} -j$(nproc) > /dev/null 2>&1
+          echo -e "\033[34m🔨 Compiling ${PKG_NAME} package \033[0m"
+          make package/${PKG_NAME}/{clean,compile} -j$(nproc) > /dev/null 2>&1
 
-      - name: Save PHP7 IPK path
+      - name: Save IPK path
         run: |
           PKG_PATH=$(find sdk/bin/packages/x86_64/luci/ -name 'luci-app-*.ipk')
-          echo "PHP7_PKG_PATH=$PKG_PATH" >> $GITHUB_ENV
-          echo "PHP7_PKG_FILE=$(basename $PKG_PATH)" >> $GITHUB_ENV
-          echo -e "\033[34m\t📂 Package path:\033[37m $PHP7_PKG_PATH \033[0m"
-          echo -e "\033[34m\t📄 Package file:\033[37m $PHP7_PKG_FILE \033[0m"
-
-  build-php8:
-    name: Build PHP8
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: 🔄 Checkout repository
-        uses: actions/checkout@v4
-
-      - name: 🛠️ Set up build environment for PHP8
-        run: |
-          echo -e "\033[34m🔨 Preparing build environment \033[0m"
-          sudo -E apt-get update > /dev/null 2>&1
-          sudo -E apt-get install build-essential clang flex bison g++ gawk gcc-multilib g++-multilib gettext git libncurses5-dev libssl-dev python3-setuptools rsync swig unzip zlib1g-dev file wget > /dev/null 2>&1
-          sudo -E apt-get autoremove --purge > /dev/null 2>&1
-          sudo -E apt-get clean > /dev/null 2>&1
-          
-          echo -e "\033[34m🔧 Configuring environment for PHP \033[0m"
-          PKG_PHP8_NAME=luci-app-radmon-php8
-          PKG_PHP8_VER=$(grep 'PKG_VERSION:=' $PKG_PHP8_NAME/Makefile | awk -F '=' '{print $2}' | tr -d ' ')
-          export TERM=xterm
-          echo "PKG_PHP8_VER=$PKG_PHP8_VER" >> $GITHUB_ENV
-          echo "PKG_PHP8_NAME=$PKG_PHP8_NAME" >> $GITHUB_ENV
-          echo -e "\033[34m\t📦 PKG_PHP8_NAME:\033[37m $PKG_PHP8_NAME \033[0m"
-          echo -e "\033[34m\t🔖 PKG_PHP8_VER:\033[37m $PKG_PHP8_VER \033[0m"
-          echo -e "\033[34m\t💻 TERM:\033[37m xterm \033[0m"
-
-      - name: 📦 Set up resources for PHP8
-        run: |
-          echo -e "\033[34m🗂️ Downloading SDK OpenWRT \033[0m"
-          curl -s -L https://downloads.openwrt.org/releases/23.05.4/targets/x86/64/openwrt-sdk-23.05.4-x86-64_gcc-12.3.0_musl.Linux-x86_64.tar.xz -o sdk.tar.xz
-          mkdir sdk && tar -xf sdk.tar.xz -C sdk --strip-components=1
-
-          echo -e "\033[34m📦 Cloning luci-app-radmon-PHP8 package \033[0m"
-          git clone -q https://github.com/${{ github.repository }} sdk/package/tmp
-          mv sdk/package/tmp/${PKG_PHP8_NAME} sdk/package/
-          rm -rf sdk/package/tmp
-
-      - name: 📡 Set up SDK feeds for PHP8
-        run: |
-          echo -e "\033[34m🔍 Updating SDK feeds \033[0m"
-          cd sdk
-          ./scripts/feeds update -a > /dev/null 2>&1
-          ./scripts/feeds install -a > /dev/null 2>&1
-
-      - name: ⚙️ Configure & compile IPK for PHP8
-        run: |
-          echo -e "\033[34m🔧 Configuring SDK \033[0m"
-          cd sdk && make defconfig > /dev/null 2>&1
-          rm -rf feeds/luci/contrib/package/csstidy
-          sed -i '/^CONFIG_LUCI_JSMIN=/d' .config
-          sed -i '/^CONFIG_LUCI_CSSTIDY=/d' .config
-
-          echo -e "\033[34m🔨 Compiling ${PKG_PHP8_NAME} package \033[0m"
-          make package/${PKG_PHP8_NAME}/{clean,compile} -j$(nproc) > /dev/null 2>&1
-
-      - name: Save PHP8 IPK path
-        run: |
-          PKG_PATH=$(find sdk/bin/packages/x86_64/luci/ -name 'luci-app-*.ipk')
-          echo "PHP8_PKG_PATH=$PKG_PATH" >> $GITHUB_ENV
-          echo "PHP8_PKG_FILE=$(basename $PKG_PATH)" >> $GITHUB_ENV
-          echo -e "\033[34m\t📂 Package path:\033[37m $PHP8_PKG_PATH \033[0m"
-          echo -e "\033[34m\t📄 Package file:\033[37m $PHP8_PKG_FILE \033[0m"
+          echo "${{ matrix.php_version }}_PKG_PATH=$PKG_PATH" >> $GITHUB_ENV
+          echo "${{ matrix.php_version }}_PKG_FILE=$(basename $PKG_PATH)" >> $GITHUB_ENV
+          echo -e "\033[34m\t📂 Package path:\033[37m $PKG_PATH \033[0m"
+          echo -e "\033[34m\t📄 Package file:\033[37m $(basename $PKG_PATH) \033[0m"
 
   release:
     name: Create Release
     runs-on: ubuntu-latest
-    needs: [build-php7, build-php8]
+    needs: [build]
 
     steps:
       - name: ⏰ Set up date for tag and release name
@@ -158,16 +103,15 @@ jobs:
           draft: false
           prerelease: false
           files: |
-            ${{ env.PHP7_PKG_PATH }}
-            ${{ env.PHP8_PKG_PATH }}
+            ${{ env.php7_PKG_PATH }}
+            ${{ env.php8_PKG_PATH }}
           body: |
             ### Changelog:
-            **PHP7 Package**: ${{ env.PHP7_PKG_FILE }}
-            **PHP8 Package**: ${{ env.PHP8_PKG_FILE }}
-
+            **PHP7 Package**: ${{ env.php7_PKG_FILE }}
+            **PHP8 Package**: ${{ env.php8_PKG_FILE }}
 
       - name: 📬 Send notification to Telegram
         run: |
           curl -s -X POST "https://api.telegram.org/bot${{ secrets.BOT_TOKEN }}/sendMessage" \
           -d "chat_id=${{ secrets.CHAT_ID }}" \
-          -d "text=New release created for luci-app-radmon packages:\n- luci-app-radmon-php7\n- luci-app-radmon-php8\n\nRelease Version: v${{ env.PKG_PHP7_VER }}"
+          -d "text=New release created for luci-app-radmon"
