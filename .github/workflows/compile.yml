@@ -38,10 +38,10 @@ jobs:
           echo -e "\033[34m\t📦 PKG_NAME_PHP7:\033[37m $PKG_NAME_PHP7 \033[0m"
           echo -e "\033[34m\t🔖 PKG_PHP7_VER:\033[37m $PKG_PHP7_VER \033[0m"
           
-          echo "PKG_VERSION=$PKG_VERSION" >> $GITHUB_ENV
+          echo "PKG_PHP8_VER=$PKG_PHP8_VER" >> $GITHUB_ENV
           echo "PKG_NAME_PHP8=$PKG_NAME_PHP8" >> $GITHUB_ENV
           echo -e "\033[34m\t📦 PKG_NAME_PHP8:\033[37m $PKG_NAME_PHP8 \033[0m"
-          echo -e "\033[34m\t🔖 PKG_VERSION:\033[37m $PKG_VERSION \033[0m"
+          echo -e "\033[34m\t🔖 PKG_PHP8_VER:\033[37m $PKG_PHP8_VER \033[0m"
           
           echo -e "\033[34m\t💻 TERM:\033[37m xterm \033[0m"
 
