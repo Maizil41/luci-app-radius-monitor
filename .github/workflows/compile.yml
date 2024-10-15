@@ -68,27 +68,27 @@ jobs:
           make package/${PKG_NAME}/{clean,compile} -j$(nproc) > /dev/null 2>&1
 
       - name: ⬇️ Save IPK path
-        id: save_ipk_path  # Menetapkan ID untuk langkah ini
+        id: save_ipk_path
         run: |
           PKG_PATH=$(find sdk/bin/packages/x86_64/luci/ -name "luci-app-radmon-${{ matrix.php_version }}*.ipk")
           echo "PKG_PATH=$PKG_PATH" >> $GITHUB_ENV
           echo "PKG_FILE=$(basename "$PKG_PATH")" >> $GITHUB_ENV
-          echo "::set-output name=${{ matrix.php_version }}_PKG_PATH::$PKG_PATH"  # Menyimpan output
-          echo "::set-output name=${{ matrix.php_version }}_PKG_FILE::$(basename "$PKG_PATH")"  # Menyimpan output
+          echo "::set-output name=${{ matrix.php_version }}_PKG_PATH::$PKG_PATH"  
+          echo "::set-output name=${{ matrix.php_version }}_PKG_FILE::$(basename "$PKG_PATH")"  
 
   release:
     name: Create Release
     runs-on: ubuntu-latest
-    needs: [build]
+    needs: build
 
     steps:
-      - name: 📋 Debug Output in Build Job
+      - name: 📋 Debug Environment Variables
         run: |
-          echo "PHP7 Path: ${{ steps.save_ipk_path.outputs.php7_PKG_PATH }}"
-          echo "PHP8 Path: ${{ steps.save_ipk_path.outputs.php8_PKG_PATH }}"
-          echo "PHP7 File: ${{ steps.save_ipk_path.outputs.php7_PKG_FILE }}"
-          echo "PHP8 File: ${{ steps.save_ipk_path.outputs.php8_PKG_FILE }}"
-
+          echo "php7_PKG_PATH=${{ needs.build.outputs.php7_PKG_PATH }}"
+          echo "php8_PKG_PATH=${{ needs.build.outputs.php8_PKG_PATH }}"
+          echo "php7_PKG_FILE=${{ needs.build.outputs.php7_PKG_FILE }}"
+          echo "php8_PKG_FILE=${{ needs.build.outputs.php8_PKG_FILE }}"
+          
       - name: 🚀 Generate new tag & release
         uses: softprops/action-gh-release@v2
         env:
