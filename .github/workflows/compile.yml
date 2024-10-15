@@ -91,8 +91,8 @@ jobs:
       - name: ⏰ Set up date for tag and release name
         id: set_tag_date
         run: |
-          echo "tag_name=$(date +'%Y.%m.%d')" >> $GITHUB_ENV
-          echo "release_name=$(date +'%Y-%m-%d')" >> $GITHUB_ENV
+          echo "release_date=$(date +'%Y.%m.%d')" >> $GITHUB_ENV
+          echo "changelog=$(date +'%Y-%m-%d')" >> $GITHUB_ENV
 
       - name: 📥 Download IPK PHP7
         uses: actions/download-artifact@v3
@@ -111,18 +111,18 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
         with:
-          name: ${{ env.release_name }}
-          tag_name: ${{ env.tag_name }}
+          name: ${{ env.release_date }}
+          tag_name: ${{ env.release_date }}
           draft: false
           prerelease: false
           files: |
             ./artifacts/php7/luci-app-radmon-php7*.ipk
             ./artifacts/php8/luci-app-radmon-php8*.ipk
           body: |
-            ### Changelog ${{ env.release_name }}
+            ### Changelog ${{ env.changelog }}
 
       - name: 📬 Send notification to Telegram
         run: |
           curl -s -X POST "https://api.telegram.org/bot${{ secrets.BOT_TOKEN }}/sendMessage" \
           -d "chat_id=${{ secrets.CHAT_ID }}" \
-          -d "text=New release for luci-app-radmon, Changelog ${{ env.release_name }}"
+          -d "text=New release for luci-app-radmon, Changelog ${{ env.changelog }}"
