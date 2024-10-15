@@ -68,15 +68,13 @@ jobs:
           make package/${PKG_NAME}/{clean,compile} -j$(nproc) > /dev/null 2>&1
 
       - name: ⬇️ Save IPK path
-        id: save_ipk_path
+        id: save_ipk_path  # Menetapkan ID untuk langkah ini
         run: |
           PKG_PATH=$(find sdk/bin/packages/x86_64/luci/ -name "luci-app-radmon-${{ matrix.php_version }}*.ipk")
           echo "PKG_PATH=$PKG_PATH" >> $GITHUB_ENV
           echo "PKG_FILE=$(basename "$PKG_PATH")" >> $GITHUB_ENV
-          echo "::set-output name=${{ matrix.php_version }}_pkg_path::$PKG_PATH" 
-          echo "::set-output name=${{ matrix.php_version }}_pkg_file::$(basename "$PKG_PATH")"  # Menyimpan output
-          echo -e "\033[34m\t📂 Package path:\033[37m $PKG_PATH \033[0m"
-          echo -e "\033[34m\t📄 Package file:\033[37m $(basename "$PKG_PATH") \033[0m"
+          echo "::set-output name=${{ matrix.php_version }}_PKG_PATH::$PKG_PATH"  # Menyimpan output
+          echo "::set-output name=${{ matrix.php_version }}_PKG_FILE::$(basename "$PKG_PATH")"  # Menyimpan output
 
   release:
     name: Create Release
@@ -84,18 +82,12 @@ jobs:
     needs: [build]
 
     steps:
-      - name: ⏰ Set up date for tag and release name
-        id: set_tag_date
-        run: |
-          echo "tag_name=$(date +'%Y.%m.%d')" >> $GITHUB_ENV
-          echo "release_name=$(date +'%Y-%m-%d')" >> $GITHUB_ENV
-
       - name: 📋 Debug Environment Variables
         run: |
-          echo "php7_PKG_PATH=${{ needs.build.outputs.php7_pkg_path }}"
-          echo "php8_PKG_PATH=${{ needs.build.outputs.php8_pkg_path }}"
-          echo "php7_PKG_FILE=${{ needs.build.outputs.php7_pkg_file }}"
-          echo "php8_PKG_FILE=${{ needs.build.outputs.php8_pkg_file }}"
+          echo "php7_PKG_PATH=${{ needs.build.outputs.php7_PKG_PATH }}"
+          echo "php8_PKG_PATH=${{ needs.build.outputs.php8_PKG_PATH }}"
+          echo "php7_PKG_FILE=${{ needs.build.outputs.php7_PKG_FILE }}"
+          echo "php8_PKG_FILE=${{ needs.build.outputs.php8_PKG_FILE }}"
 
       - name: 🚀 Generate new tag & release
         uses: softprops/action-gh-release@v2
@@ -107,8 +99,8 @@ jobs:
           draft: false
           prerelease: false
           files: |
-            ${{ needs.build.outputs.php7_pkg_file }}
-            ${{ needs.build.outputs.php8_pkg_file }}
+            ${{ needs.build.outputs.php7_PKG_FILE }}
+            ${{ needs.build.outputs.php8_PKG_FILE }}
           body: |
             ### Changelog ${{ env.tag_name }}
 
