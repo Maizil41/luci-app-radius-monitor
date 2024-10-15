@@ -4,9 +4,6 @@ on:
   pull_request:
     branches:
       - main
-    paths:
-      - 'luci-app-radmon-php7/Makefile'
-  workflow_dispatch:
   
 jobs:
   build:
