@@ -70,11 +70,11 @@ jobs:
       - name: ⬇️ Save IPK path
         id: save_ipk_path
         run: |
-          PKG_PATH=$(find sdk/bin/packages/x86_64/luci/ -name 'luci-app-radmon-${{ matrix.php_version }}*.ipk')
+          PKG_PATH=$(find sdk/bin/packages/x86_64/luci/ -name "luci-app-radmon-${{ matrix.php_version }}*.ipk")
           echo "PKG_PATH=$PKG_PATH" >> $GITHUB_ENV
           echo "PKG_FILE=$(basename "$PKG_PATH")" >> $GITHUB_ENV
-          echo "::set-output name=php_pkg_path::$PKG_PATH"  # Menyimpan output
-          echo "::set-output name=php_pkg_file::$(basename "$PKG_PATH")"  # Menyimpan output
+          echo "::set-output name=${{ matrix.php_version }}_pkg_path::$PKG_PATH" 
+          echo "::set-output name=${{ matrix.php_version }}_pkg_file::$(basename "$PKG_PATH")"  # Menyimpan output
           echo -e "\033[34m\t📂 Package path:\033[37m $PKG_PATH \033[0m"
           echo -e "\033[34m\t📄 Package file:\033[37m $(basename "$PKG_PATH") \033[0m"
 
@@ -117,4 +117,3 @@ jobs:
           curl -s -X POST "https://api.telegram.org/bot${{ secrets.BOT_TOKEN }}/sendMessage" \
           -d "chat_id=${{ secrets.CHAT_ID }}" \
           -d "text=New release created for luci-app-radmon"
-
