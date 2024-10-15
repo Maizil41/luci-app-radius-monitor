@@ -84,7 +84,7 @@ jobs:
           echo -e "\033[34m\t📄 Package file:\033[37m $(basename $PKG_PATH) \033[0m"
 
   release:
-    name: ✅ Create Release
+    name: Create Release
     runs-on: ubuntu-latest
     needs: [build]
 
