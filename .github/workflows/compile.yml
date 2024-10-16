@@ -67,22 +67,12 @@ jobs:
           echo -e "\033[34m🔨 Compiling ${PKG_NAME} package \033[0m"
           make package/${PKG_NAME}/{clean,compile} -j$(nproc) > /dev/null 2>&1
 
-      - name: ⬇️ Save IPK path
-        id: save_ipk_path
-        run: |
-          PKG_PATH=$(find sdk/bin/packages/x86_64/luci/ -name 'luci-app-radmon-${{ matrix.php_version }}*.ipk')
-          echo "${{ matrix.php_version }}_PKG_PATH=$PKG_PATH" >> $GITHUB_ENV
-          echo "${{ matrix.php_version }}_PKG_FILE=$(basename $PKG_PATH)" >> $GITHUB_ENV
-          echo -e "\033[34m\t📂 Package path:\033[37m $PKG_PATH \033[0m"
-          echo -e "\033[34m\t📄 Package file:\033[37m $(basename $PKG_PATH) \033[0m"
-
       - name: ⬆️ Upload IPK To Release
         uses: actions/upload-artifact@v3
         with:
           name: ipk-packages
           path: |
-            sdk/bin/packages/x86_64/luci/luci-app-radmon-php7*.ipk
-            sdk/bin/packages/x86_64/luci/luci-app-radmon-php8*.ipk
+            sdk/bin/packages/x86_64/luci/luci-app-radmon-${{ matrix.php_version }}*.ipk
 
   release:
     name: Create Release
