@@ -79,8 +79,10 @@ jobs:
       - name: ⬆️ Upload IPK To Release
         uses: actions/upload-artifact@v3
         with:
-          name: ipk-${{ matrix.php_version }}
-          path: sdk/bin/packages/x86_64/luci/luci-app-radmon-${{ matrix.php_version }}*.ipk
+          name: ipk-packages
+          path: |
+            sdk/bin/packages/x86_64/luci/luci-app-radmon-php7*.ipk
+            sdk/bin/packages/x86_64/luci/luci-app-radmon-php8*.ipk
 
   release:
     name: Create Release
@@ -94,17 +96,11 @@ jobs:
           echo "release_date=$(date +'%Y.%m.%d')" >> $GITHUB_ENV
           echo "changelog=$(date +'%Y-%m-%d')" >> $GITHUB_ENV
 
-      - name: 📥 Download IPK PHP7
+      - name: 📥 Download IPK
         uses: actions/download-artifact@v3
         with:
-          name: ipk-php7
-          path: ./artifacts/php7/
-          
-      - name: 📥 Download IPK PHP8
-        uses: actions/download-artifact@v3
-        with:
-          name: ipk-php8
-          path: ./artifacts/php8/
+          name: ipk-packages
+          path: ./artifacts/
 
       - name: 🚀 Generate new tag & release
         uses: softprops/action-gh-release@v2
@@ -116,8 +112,8 @@ jobs:
           draft: false
           prerelease: false
           files: |
-            ./artifacts/php7/luci-app-radmon-php7*.ipk
-            ./artifacts/php8/luci-app-radmon-php8*.ipk
+            ./artifacts/luci-app-radmon-php7*.ipk
+            ./artifacts/luci-app-radmon-php8*.ipk
           body: |
             ### Changelog ${{ env.changelog }}
 
