@@ -8,19 +8,9 @@ if [ -d "/usr/share/RadiusMonitor" ]; then
     rm -rf /usr/share/RadiusMonitor
 fi
 
-if [ -d "/etc/freeradius3" ]; then
-    rm -rf /etc/freeradius3
-fi
-
 sleep 1
 
 git clone --depth 1 https://github.com/maizil41/RadiusMonitor.git /usr/share/RadiusMonitor
-
-sleep 1
-
-wget https://raw.githubusercontent.com/Maizil41/Mutiara-Wrt/main/Radmon_2.4.zip -O /Radmon_2.4.zip
-
-unzip Radmon_2.4.zip
 
 sleep 1
 
@@ -31,6 +21,10 @@ chmod +x /usr/bin/radmon-kuota
 sleep 1
 
 ln -s /usr/share/RadiusMonitor /www/RadiusMonitor
+
+sleep 1
+
+mkdir -p /etc/freeradius3/mods-enabled
 
 sleep 1
 
@@ -55,6 +49,10 @@ ln -s ../mods-available/sql
 ln -s ../mods-available/sradutmp
 ln -s ../mods-available/unix
 cd
+
+sleep 1
+
+mkdir -p /etc/freeradius3/sites-enabled
 
 sleep 1
 
