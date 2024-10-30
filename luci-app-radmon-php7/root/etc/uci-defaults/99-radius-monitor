@@ -1,5 +1,8 @@
 #!/bin/sh
 
+echo "Masukkan password MySQL (biasanya radius / radmon)"
+read -s pass  # `-s`
+
 if [ -d "/www/RadiusMonitor" ]; then
     rm -rf /www/RadiusMonitor
 fi
@@ -24,48 +27,14 @@ ln -s /usr/share/RadiusMonitor /www/RadiusMonitor
 
 sleep 1
 
-mkdir -p /etc/freeradius3/mods-enabled
+mysql -u root -p"$pass" -e "CREATE DATABASE radmon CHARACTER SET utf8";
+mysql -u root -p"$pass" -e "GRANT ALL ON radmon.* TO 'radmon'@'localhost' IDENTIFIED BY 'radmon' WITH GRANT OPTION";
 
 sleep 1
 
-cd /etc/freeradius3/mods-enabled
-ln -s ../mods-available/always
-ln -s ../mods-available/attr_filter
-ln -s ../mods-available/chap
-ln -s ../mods-available/detail
-ln -s ../mods-available/digest
-ln -s ../mods-available/eap
-ln -s ../mods-available/exec
-ln -s ../mods-available/expiration
-ln -s ../mods-available/expr
-ln -s ../mods-available/files
-ln -s ../mods-available/logintime
-ln -s ../mods-available/mschap
-ln -s ../mods-available/pap
-ln -s ../mods-available/preprocess
-ln -s ../mods-available/radutmp
-ln -s ../mods-available/realm
-ln -s ../mods-available/sql
-ln -s ../mods-available/sradutmp
-ln -s ../mods-available/unix
-cd
-
-sleep 1
-
-mkdir -p /etc/freeradius3/sites-enabled
-
-sleep 1
-
-cd /etc/freeradius3/sites-enabled
-ln -s ../sites-available/default
-ln -s ../sites-available/inner-tunnel
-cd
-
-sleep 1
-
-cd /www/RadiusMonitor && mysql -u root -pradius < radmon.sql
+cd /www/RadiusMonitor && mysql -u root -p"$pass" radmon < radmon.sql
 
 sleep 1
 
 (crontab -l; echo "* * * * * /usr/bin/radmon-kuota >/dev/null 2>&1") | crontab -
-(crontab -l; echo "0 0 * * * find /www/RadiusMonitor/dist/pages/data/tmp -type f ! -name 'index.php' -exec rm -f {} +") | crontab - 
+(crontab -l; echo "0 0 * * * find /www/RadiusMonitor/dist/pages/data/tmp -type f ! -name 'index.php' -exec rm -f {} +") | crontab -
