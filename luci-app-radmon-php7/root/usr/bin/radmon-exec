@@ -1,6 +1,6 @@
 #!/bin/bash
 # Radmon Additional script
-# Copyrigth Mutiara-Wrt by @Maizil <https://github.com/maizil41>
+# Copyright Mutiara-Wrt by @Maizil <https://github.com/maizil41>
 
 USERNAME=$1
 IPADDRES=$2
@@ -39,13 +39,15 @@ JOIN radgroupreply g ON u.planName = g.groupname
 WHERE r.username = '$USERNAME' AND g.attribute = 'WISPr-Bandwidth-Max-Up'
 LIMIT 1;")
 
-while iptables -L FORWARD -v -n --line-numbers | grep -q "$IPADDRES"; do
-    line_number=$(iptables -L FORWARD -v -n --line-numbers | grep "$IPADDRES" | awk '{print $1}' | head -n 1)
-    iptables -D FORWARD "$line_number"
-done
+if [ -n "$IPADDRES" ]; then
+    while iptables -L FORWARD -v -n --line-numbers | grep -q "$IPADDRES"; do
+        line_number=$(iptables -L FORWARD -v -n --line-numbers | grep "$IPADDRES" | awk '{print $1}' | head -n 1)
+        iptables -D FORWARD "$line_number"
+    done
 
-if [ -n "$UPLOAD" ]; then
-    iptables -I FORWARD -s "$IPADDRES" -m hashlimit --hashlimit-above "$UPLOAD" --hashlimit-mode srcip --hashlimit-name "$USERNAME" -j DROP -m comment --comment "$USERNAME"
+    if [ -n "$UPLOAD" ]; then
+        iptables -I FORWARD -s "$IPADDRES" -m hashlimit --hashlimit-above "$UPLOAD" --hashlimit-mode srcip --hashlimit-name "$USERNAME" -j DROP -m comment --comment "$USERNAME"
+    fi
 fi
 
 if [ -z "$EXPR_VALUE" ]; then
