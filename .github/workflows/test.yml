@@ -16,15 +16,15 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
+        tag: [openwrt-21.02, openwrt-23.05]
+        package: [luci-app-radmon-php7, luci-app-radmon-php8]
+        include:
+          - tag: openwrt-21.02
+            package: luci-app-radmon-php7
+          - tag: openwrt-23.05
+            package: luci-app-radmon-php8
         arch:
-          - aarch64_cortex-a53
-          - aarch64_generic
-        tag:
-          - openwrt-23.05
-          - openwrt-21.02
-        packages:
-          - luci-app-radmon-php7
-          - luci-app-radmon-php8
+          - x86_64
 
     steps:
       - uses: actions/checkout@v4
@@ -35,11 +35,11 @@ jobs:
         uses: openwrt/gh-action-sdk@main
         env:
           ARCH: ${{ matrix.arch }}-${{ matrix.tag }}
-          PACKAGES: ${{ matrix.packages }}
+          PACKAGES: ${{ matrix.package }}
           NO_REFRESH_CHECK: true
 
       - name: Upload
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ matrix.arch }}
+          name: ${{ matrix.arch }}-${{ matrix.tag }}
           path: bin/packages/${{ matrix.arch }}/msd/*.ipk
