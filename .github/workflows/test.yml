@@ -19,9 +19,12 @@ jobs:
         arch:
           - aarch64_cortex-a53
           - aarch64_generic
-          - x86_64
         tag:
           - openwrt-23.05
+          - openwrt-21.02
+        packages:
+          - luci-app-radmon-php7
+          - luci-app-radmon-php8
 
     steps:
       - uses: actions/checkout@v4
@@ -32,8 +35,7 @@ jobs:
         uses: openwrt/gh-action-sdk@main
         env:
           ARCH: ${{ matrix.arch }}-${{ matrix.tag }}
-          FEEDNAME: msd
-          PACKAGES: luci-app-msd
+          PACKAGES: ${{ matrix.packages }}
           NO_REFRESH_CHECK: true
 
       - name: Upload
