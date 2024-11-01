@@ -1,6 +1,6 @@
 #!/bin/sh
 
-echo "Masukkan password MySQL (biasanya radius / radmon)"
+echo "Masukkan password MySQL (FW Lama 'radius' / FW Baru 'radmon')"
 read pass
 
 if [ -d "/www/RadiusMonitor" ]; then
@@ -11,30 +11,88 @@ if [ -d "/usr/share/RadiusMonitor" ]; then
     rm -rf /usr/share/RadiusMonitor
 fi
 
+if [ -d "/etc/freeradius3" ]; then
+    rm -rf /etc/freeradius3
+fi
+
 sleep 1
 
+echo"Clone Repository"
 git clone --depth 1 https://github.com/maizil41/RadiusMonitor.git /usr/share/RadiusMonitor
 
 sleep 1
 
+echo"Downloading file"
+wget https://raw.githubusercontent.com/maizil41/luci-app-radius-monitor/main/files/freeradius3.zip -O /etc/freeradius3.zip
+
+sleep 1
+
+echo"Extracting file"
+cd /etc/ && unzip freeradius3.zip
+
+sleep 1
+
+echo"Link mods-enabled"
+cd /etc/freeradius3/mods-enabled
+ln -s ../mods-available/always
+ln -s ../mods-available/attr_filter
+ln -s ../mods-available/chap
+ln -s ../mods-available/detail
+ln -s ../mods-available/digest
+ln -s ../mods-available/eap
+ln -s ../mods-available/exec
+ln -s ../mods-available/expiration
+ln -s ../mods-available/expr
+ln -s ../mods-available/files
+ln -s ../mods-available/logintime
+ln -s ../mods-available/mschap
+ln -s ../mods-available/pap
+ln -s ../mods-available/preprocess
+ln -s ../mods-available/radutmp
+ln -s ../mods-available/realm
+ln -s ../mods-available/sql
+ln -s ../mods-available/sradutmp
+ln -s ../mods-available/unix
+cd
+
+sleep 1
+
+echo"Link sites-enabled"
+cd /etc/freeradius3/sites-enabled
+ln -s ../sites-available/default
+ln -s ../sites-available/inner-tunnel
+cd
+
+sleep 1
+
+echo"Change permission"
 chmod +x /usr/bin/radmon-exec
 chmod +x /usr/bin/radmon-log
 chmod +x /usr/bin/radmon-kuota
 
 sleep 1
 
+echo"Link On /www"
 ln -s /usr/share/RadiusMonitor /www/RadiusMonitor
 
 sleep 1
 
-mysql -u root -p"$pass" -e "CREATE DATABASE radmon CHARACTER SET utf8";
-mysql -u root -p"$pass" -e "GRANT ALL ON radmon.* TO 'radmon'@'localhost' IDENTIFIED BY 'radmon' WITH GRANT OPTION";
+if ! mysql -u root -p"$pass" -e "USE radmon" 2>/dev/null; then
+  echo "DB radmon not exist, creating..."
+  
+  mysql -u root -p"$pass" -e "CREATE DATABASE radmon CHARACTER SET utf8";
+  mysql -u root -p"$pass" -e "GRANT ALL ON radmon.* TO 'radmon'@'localhost' IDENTIFIED BY 'radmon' WITH GRANT OPTION";
+else
+  echo "DB radmon exist, skipping..."
+fi
 
 sleep 1
 
+echo "Link RadiusMonitor to /www/"
 cd /www/RadiusMonitor && mysql -u root -p"$pass" radmon < radmon.sql
 
 sleep 1
 
+echo "Insert Crontab"
 (crontab -l; echo "* * * * * /usr/bin/radmon-kuota >/dev/null 2>&1") | crontab -
 (crontab -l; echo "0 0 * * * find /www/RadiusMonitor/dist/pages/data/tmp -type f ! -name 'index.php' -exec rm -f {} +") | crontab -
