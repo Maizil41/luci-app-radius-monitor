@@ -1,13 +1,13 @@
 name: Build Packages
 
 on:
-  workflow_dispatch:
   push:
     branches:
       - main
     paths:
       - 'luci-app-radmon-php7/**'
       - 'luci-app-radmon-php8/**'
+  workflow_dispatch:
 
 jobs:
   build:
