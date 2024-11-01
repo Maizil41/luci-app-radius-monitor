@@ -17,22 +17,22 @@ fi
 
 sleep 1
 
-echo"Clone Repository"
+echo "Clone Repository"
 git clone --depth 1 https://github.com/maizil41/RadiusMonitor.git /usr/share/RadiusMonitor
 
 sleep 1
 
-echo"Downloading file"
+echo "Downloading file"
 wget https://raw.githubusercontent.com/maizil41/luci-app-radius-monitor/main/files/freeradius3.zip -O /etc/freeradius3.zip
 
 sleep 1
 
-echo"Extracting file"
+echo "Extracting file"
 cd /etc/ && unzip freeradius3.zip
 
 sleep 1
 
-echo"Link mods-enabled"
+echo "Link mods-enabled"
 cd /etc/freeradius3/mods-enabled
 ln -s ../mods-available/always
 ln -s ../mods-available/attr_filter
@@ -57,7 +57,7 @@ cd
 
 sleep 1
 
-echo"Link sites-enabled"
+echo "Link sites-enabled"
 cd /etc/freeradius3/sites-enabled
 ln -s ../sites-available/default
 ln -s ../sites-available/inner-tunnel
@@ -65,14 +65,14 @@ cd
 
 sleep 1
 
-echo"Change permission"
+echo "Change permission"
 chmod +x /usr/bin/radmon-exec
 chmod +x /usr/bin/radmon-log
 chmod +x /usr/bin/radmon-kuota
 
 sleep 1
 
-echo"Link On /www"
+echo "Link On /www"
 ln -s /usr/share/RadiusMonitor /www/RadiusMonitor
 
 sleep 1
