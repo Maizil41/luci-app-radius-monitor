@@ -10,7 +10,7 @@ LUCI_DESCRIPTION:=Application for monitoring RADIUS server.
 LUCI_MAINTAINER:=Maizil <maizilpc7@gmail.com>
 
 PKG_MAINTAINER:=Maizil <maizilpc7@gmail.com>
-PKG_VERSION:=2.5
+PKG_VERSION:=2.6
 PKG_RELEASE:=beta
 PKG_LICENSE:=Apache-2.0
 PKG_ARCH:=all
