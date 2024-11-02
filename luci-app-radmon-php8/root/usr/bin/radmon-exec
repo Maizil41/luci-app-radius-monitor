@@ -23,6 +23,9 @@ MAX_OCTETS=$(mysql -u $DB_USER -p$DB_PASS -D $DB_NAME -N -e "$QUERY_MAX")
 QUERY_EXPR="SELECT bp.planTimeBank FROM userbillinfo ub JOIN billing_plans bp ON ub.planName = bp.planName WHERE ub.username = '$USERNAME';"
 EXPR_VALUE=$(mysql -u $DB_USER -p$DB_PASS -D $DB_NAME -N -e "$QUERY_EXPR")
 
+QUERY_AMOUNT="SELECT IFNULL(bp.planCost, 0) FROM userbillinfo ub JOIN billing_plans bp ON ub.planName = bp.planName WHERE ub.username = '$USERNAME';"
+AMOUNT=$(mysql -u $DB_USER -p$DB_PASS -D $DB_NAME -N -e "$QUERY_AMOUNT")
+
 if [ -n "$TOTAL_OCTETS" ] && [ -n "$MAX_OCTETS" ]; then
     if [ "$TOTAL_OCTETS" -gt "$MAX_OCTETS" ]; then
         echo "Reply-Message := 'Kuota Anda Telah Habis'"
@@ -66,6 +69,17 @@ if [[ "$EXPR_VALUE" =~ ^[0-9]+$ ]]; then
     fi
 else
     exit 1
+fi
+
+if [ "$AMOUNT" -ne 0 ]; then
+    EXISTING_AMOUNT_ENTRY=$(mysql -u $DB_USER -p$DB_PASS -D $DB_NAME -N -e "
+    SELECT COUNT(*) FROM income WHERE username = '$USERNAME';")
+
+    if [ "$EXISTING_AMOUNT_ENTRY" -eq 0 ]; then
+        mysql -u $DB_USER -p$DB_PASS -D $DB_NAME -e "
+        INSERT INTO income (date, username, amount) 
+        VALUES (CURDATE(), '$USERNAME', '$AMOUNT');"
+    fi
 fi
 
 exit 0
