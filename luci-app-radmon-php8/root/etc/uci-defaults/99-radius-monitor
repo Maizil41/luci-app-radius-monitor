@@ -1,6 +1,6 @@
 #!/bin/sh
 
-echo "Masukkan password MySQL (FW Lama 'radius' / FW Baru 'radmon'):"
+echo -e "\e[32mMasukkan password MySQL (FW Lama 'radius' / FW Baru 'radmon'):\e[0m"
 read pass
 
 [ -d "/www/RadiusMonitor" ] && rm -rf /www/RadiusMonitor
@@ -9,18 +9,18 @@ read pass
 
 sleep 1
 
-echo "Clone Repository"
+echo -e "\e[31mClone Repository\e[0m"
 git clone --depth 1 https://github.com/maizil41/RadiusMonitor.git /usr/share/RadiusMonitor > /dev/null 2>&1
 
-echo "Downloading freeradius3.zip"
+echo -e "\e[31mDownloading freeradius3.zip\e[0m"
 wget https://raw.githubusercontent.com/maizil41/luci-app-radius-monitor/main/files/freeradius3.zip -O /etc/freeradius3.zip > /dev/null 2>&1
 
-echo "Extracting freeradius3.zip"
+echo -e "\e[31mExtracting freeradius3.zip\e[0m"
 cd /etc/ && unzip -o freeradius3.zip > /dev/null
 
 sleep 1
 
-echo "Link mods-enabled"
+echo -e "\e[31mCreate link mods-enabled\e[0m"
 cd /etc/freeradius3/mods-enabled
 for mod in always attr_filter chap detail digest eap exec expiration expr files logintime mschap pap preprocess radutmp realm sql sradutmp unix; do
     ln -sf ../mods-available/$mod
@@ -29,7 +29,7 @@ cd
 
 sleep 1
 
-echo "Link sites-enabled"
+echo -e "\e[31mCreate link sites-enabled\e[0m"
 cd /etc/freeradius3/sites-enabled
 ln -sf ../sites-available/default
 ln -sf ../sites-available/inner-tunnel
@@ -37,45 +37,45 @@ cd
 
 sleep 1
 
-echo "Change permission"
+echo -e "\e[31mChange permission\e[0m"
 chmod +x /usr/bin/radmon-exec /usr/bin/radmon-log /usr/bin/radmon-kuota
 
 sleep 1
 
-echo "Link On /www"
+echo -e "\e[31mCrate link On /www\e[0m"
 ln -sf /usr/share/RadiusMonitor /www/RadiusMonitor
 
-echo "Checking for database 'radmon'"
+echo -e "\e[31mChecking for database 'radmon'\e[0m"
 if ! mysql -u root -p"$pass" -e "USE radmon" 2>/dev/null; then
-    echo "DB 'radmon' not exist, creating database..."
+    echo -e "\e[32mDB 'radmon' not exist, creating database...\e[0m"
     mysql -u root -p"$pass" -e "CREATE DATABASE radmon CHARACTER SET utf8"
     mysql -u root -p"$pass" -e "GRANT ALL ON radmon.* TO 'radmon'@'localhost' IDENTIFIED BY 'radmon' WITH GRANT OPTION"
 else
-    echo "DB 'radmon' exist, skipping..."
+    echo -e "\e[33mDB 'radmon' exist, skipping...\e[0m"
 fi
 
 sleep 1
 
-echo "Import "
+echo -e "\e[31mImport Database...\e[0m"
 cd /www/RadiusMonitor && mysql -u root -p"$pass" radmon < radmon.sql
 
 sleep 1
 
-echo "Setup cronjob..."
+echo -e "\e[31mSetup cronjob...\e[0m"
 
 if (crontab -l | grep -q '/usr/bin/radmon-kuota'); then
-    echo "Cronjob already exist, skipping..."
+    echo -e "\e[33mCronjob already exist, skipping...\e[0m"
 else
     (crontab -l; echo "* * * * * /usr/bin/radmon-kuota >/dev/null 2>&1") | crontab -
-    echo "Adding cronjob..."
+    echo -e "\e[32mAdding cronjob...\e[0m"
 fi
 
 if (crontab -l | grep -q 'find /www/RadiusMonitor/dist/pages/data/tmp -type f ! -name '\''index.php'\'' -exec rm -f {} +'); then
-    echo "Cronjob already exist, skipping..."
+    echo -e "\e[33mCronjob already exist, skipping...\e[0m"
 else
     (crontab -l; echo "0 0 * * * find /www/RadiusMonitor/dist/pages/data/tmp -type f ! -name 'index.php' -exec rm -f {} +") | crontab -
-    echo "Adding cronjob..."
+    echo -e "\e[32mAdding cronjob...\e[0m"
 fi
 
 sleep 1
-echo "Success"
+echo -e "\e[32mSuccess\e[0m"
