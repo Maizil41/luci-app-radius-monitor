@@ -1,98 +1,81 @@
 #!/bin/sh
 
-echo "Masukkan password MySQL (FW Lama 'radius' / FW Baru 'radmon')"
+echo "Masukkan password MySQL (FW Lama 'radius' / FW Baru 'radmon'):"
 read pass
 
-if [ -d "/www/RadiusMonitor" ]; then
-    rm -rf /www/RadiusMonitor
-fi
-
-if [ -d "/usr/share/RadiusMonitor" ]; then
-    rm -rf /usr/share/RadiusMonitor
-fi
-
-if [ -d "/etc/freeradius3" ]; then
-    rm -rf /etc/freeradius3
-fi
+[ -d "/www/RadiusMonitor" ] && rm -rf /www/RadiusMonitor
+[ -d "/usr/share/RadiusMonitor" ] && rm -rf /usr/share/RadiusMonitor
+[ -d "/etc/freeradius3" ] && rm -rf /etc/freeradius3
 
 sleep 1
 
 echo "Clone Repository"
-git clone --depth 1 https://github.com/maizil41/RadiusMonitor.git /usr/share/RadiusMonitor
+git clone --depth 1 https://github.com/maizil41/RadiusMonitor.git /usr/share/RadiusMonitor > /dev/null 2>&1
 
-sleep 1
+echo "Downloading freeradius3.zip"
+wget https://raw.githubusercontent.com/maizil41/luci-app-radius-monitor/main/files/freeradius3.zip -O /etc/freeradius3.zip > /dev/null 2>&1
 
-echo "Downloading file"
-wget https://raw.githubusercontent.com/maizil41/luci-app-radius-monitor/main/files/freeradius3.zip -O /etc/freeradius3.zip
-
-sleep 1
-
-echo "Extracting file"
-cd /etc/ && unzip freeradius3.zip
+echo "Extracting freeradius3.zip"
+cd /etc/ && unzip -o freeradius3.zip > /dev/null
 
 sleep 1
 
 echo "Link mods-enabled"
 cd /etc/freeradius3/mods-enabled
-ln -s ../mods-available/always
-ln -s ../mods-available/attr_filter
-ln -s ../mods-available/chap
-ln -s ../mods-available/detail
-ln -s ../mods-available/digest
-ln -s ../mods-available/eap
-ln -s ../mods-available/exec
-ln -s ../mods-available/expiration
-ln -s ../mods-available/expr
-ln -s ../mods-available/files
-ln -s ../mods-available/logintime
-ln -s ../mods-available/mschap
-ln -s ../mods-available/pap
-ln -s ../mods-available/preprocess
-ln -s ../mods-available/radutmp
-ln -s ../mods-available/realm
-ln -s ../mods-available/sql
-ln -s ../mods-available/sradutmp
-ln -s ../mods-available/unix
+for mod in always attr_filter chap detail digest eap exec expiration expr files logintime mschap pap preprocess radutmp realm sql sradutmp unix; do
+    ln -sf ../mods-available/$mod
+done
 cd
 
 sleep 1
 
 echo "Link sites-enabled"
 cd /etc/freeradius3/sites-enabled
-ln -s ../sites-available/default
-ln -s ../sites-available/inner-tunnel
+ln -sf ../sites-available/default
+ln -sf ../sites-available/inner-tunnel
 cd
 
 sleep 1
 
 echo "Change permission"
-chmod +x /usr/bin/radmon-exec
-chmod +x /usr/bin/radmon-log
-chmod +x /usr/bin/radmon-kuota
+chmod +x /usr/bin/radmon-exec /usr/bin/radmon-log /usr/bin/radmon-kuota
 
 sleep 1
 
 echo "Link On /www"
-ln -s /usr/share/RadiusMonitor /www/RadiusMonitor
+ln -sf /usr/share/RadiusMonitor /www/RadiusMonitor
 
-sleep 1
-
+echo "Checking for database 'radmon'"
 if ! mysql -u root -p"$pass" -e "USE radmon" 2>/dev/null; then
-  echo "DB radmon not exist, creating..."
-  
-  mysql -u root -p"$pass" -e "CREATE DATABASE radmon CHARACTER SET utf8";
-  mysql -u root -p"$pass" -e "GRANT ALL ON radmon.* TO 'radmon'@'localhost' IDENTIFIED BY 'radmon' WITH GRANT OPTION";
+    echo "DB 'radmon' not exist, creating database..."
+    mysql -u root -p"$pass" -e "CREATE DATABASE radmon CHARACTER SET utf8"
+    mysql -u root -p"$pass" -e "GRANT ALL ON radmon.* TO 'radmon'@'localhost' IDENTIFIED BY 'radmon' WITH GRANT OPTION"
 else
-  echo "DB radmon exist, skipping..."
+    echo "DB 'radmon' exist, skipping..."
 fi
 
 sleep 1
 
-echo "Link RadiusMonitor to /www/"
+echo "Import "
 cd /www/RadiusMonitor && mysql -u root -p"$pass" radmon < radmon.sql
 
 sleep 1
 
-echo "Insert Crontab"
-(crontab -l; echo "* * * * * /usr/bin/radmon-kuota >/dev/null 2>&1") | crontab -
-(crontab -l; echo "0 0 * * * find /www/RadiusMonitor/dist/pages/data/tmp -type f ! -name 'index.php' -exec rm -f {} +") | crontab -
+echo "Setup cronjob..."
+
+if (crontab -l | grep -q '/usr/bin/radmon-kuota'); then
+    echo "Cronjob already exist, skipping..."
+else
+    (crontab -l; echo "* * * * * /usr/bin/radmon-kuota >/dev/null 2>&1") | crontab -
+    echo "Adding cronjob..."
+fi
+
+if (crontab -l | grep -q 'find /www/RadiusMonitor/dist/pages/data/tmp -type f ! -name '\''index.php'\'' -exec rm -f {} +'); then
+    echo "Cronjob already exist, skipping..."
+else
+    (crontab -l; echo "0 0 * * * find /www/RadiusMonitor/dist/pages/data/tmp -type f ! -name 'index.php' -exec rm -f {} +") | crontab -
+    echo "Adding cronjob..."
+fi
+
+sleep 1
+echo "Success"
