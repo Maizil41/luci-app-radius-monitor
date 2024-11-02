@@ -3,7 +3,7 @@ name: Build Packages
 on:
   push:
     branches:
-      - main
+      - master
     paths:
       - 'luci-app-radmon-php7/**'
       - 'luci-app-radmon-php8/**'
