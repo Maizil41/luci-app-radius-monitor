@@ -1,0 +1,14 @@
+{
+	"admin/services/radmonv2": {
+		"title": "RadMon V2",
+		"order": 4,
+		"action": {
+			"type": "template",
+			"path": "radmonv2"
+		},
+		"depends": {
+			"acl": [ "luci-app-radmonv2" ]
+		}
+
+	}
+}

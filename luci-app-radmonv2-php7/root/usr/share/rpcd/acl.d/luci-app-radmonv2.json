@@ -1,0 +1,11 @@
+{
+	"luci-app-radmonv2": {
+		"description": "Grant UCI access for luci-app-radmonv2",
+		"read": {
+			"uci": [ "radmonv2" ]
+		},
+		"write": {
+			"uci": [ "radmonv2" ]
+		}
+	}
+}
